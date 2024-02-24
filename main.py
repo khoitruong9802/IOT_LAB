@@ -1,9 +1,10 @@
 import sys
-import random
-import time
 from dotenv import load_dotenv
 import os
 from Adafruit_IO import MQTTClient
+from Pyserial import Serial
+from AIDetect import AI
+import threading
 
 class AdafruitMQTT:
 
@@ -43,23 +44,26 @@ class AdafruitMQTT:
     def message(self, client, feed_id, payload):
         print("Nhan du lieu: " + payload + ", feed id: " + feed_id)
 
-if __name__ == "__main__":
-    adafruit_mqtt = AdafruitMQTT()
+class Main:
+    def __init__(self):
+        self.adafruit_mqtt = AdafruitMQTT()
+        self.ser = Serial()
+        self.ai = AI()
 
-    counter = 10
-    while True:
-        counter = counter - 1
-        if counter <= 0:
-            counter = 10
-            temp = random.randint(15, 35)
-            humi = random.randint(15, 35)
-            light = random.randint(15, 35)
+    def publishSensor(self, data):
+        if data[1] == "T":
+            self.adafruit_mqtt.publish("cambien1", data[2])
+        elif data[1] == "L":
+            self.adafruit_mqtt.publish("cambien2", data[2])
+        elif data[1] == "H":
+            self.adafruit_mqtt.publish("cambien3", data[2])
 
-            print("Publish sensor 1 data.....")
-            adafruit_mqtt.publish("cambien1", temp)
-            print("Publish sensor 2 data.....")
-            adafruit_mqtt.publish("cambien2", humi)
-            print("Publish sensor 3 data.....")
-            adafruit_mqtt.publish("cambien3", light)
+    def publishAI(self, data):
+        self.adafruit_mqtt.publish("ai", data)
+
+    def run(self):
+        threading.Thread(target=self.ser.readSerialRun, args=(self.publishSensor,)).start()
+        threading.Thread(target=self.ai.runAI, args=(self.publishAI,)).start()
         
-        time.sleep(1)
+if __name__ == "__main__":
+    Main().run()
