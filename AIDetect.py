@@ -17,13 +17,13 @@ class AI:
         self.class_names = open("keras_model/labels.txt", "r").readlines()
 
         # CAMERA can be 0 or 1 based on default camera of your computer
-        if load_dotenv():
+        if load_dotenv(override=True):
             self.camera = cv2.VideoCapture(os.getenv("CAM_IP"))
         else:
             print("Fail to read from env")
             sys.exit(1)
 
-    def runAI(self, callback=None):
+    def run(self, callback=None):
         count = 0
         while True:
             # Grab the webcamera's image.
@@ -53,7 +53,7 @@ class AI:
                 print("Class:", class_name[2:], end="")
                 print("Confidence Score:", str(np.round(confidence_score * 100))[:-2], "%")
                 if callback is not None:
-                    callback(class_name)
+                    callback(class_name.split(" ")[1])
 
             # Listen to the keyboard for presses.
             keyboard_input = cv2.waitKey(20)

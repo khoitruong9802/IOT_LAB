@@ -24,7 +24,7 @@ class Serial:
         splitData = data.split(":")
         return splitData
 
-    def readSerialRun(self, callback=None):
+    def run(self, callback=None):
         while True:
             bytesToRead = self.ser.inWaiting()
             if (bytesToRead > 0):
@@ -42,4 +42,4 @@ class Serial:
 
 if __name__ == "__main__":
     ser = Serial()
-    ser.readSerialRun()
+    ser.run()

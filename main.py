@@ -59,11 +59,11 @@ class Main:
             self.adafruit_mqtt.publish("cambien3", data[2])
 
     def publishAI(self, data):
-        self.adafruit_mqtt.publish("ai", data.split(" ")[1])
+        self.adafruit_mqtt.publish("ai", data)
 
     def run(self):
-        threading.Thread(target=self.ser.readSerialRun, args=(self.publishSensor,)).start()
-        threading.Thread(target=self.ai.runAI, args=(self.publishAI,)).start()
+        threading.Thread(target=self.ser.run, args=(self.publishSensor,)).start()
+        threading.Thread(target=self.ai.run, args=(self.publishAI,)).start()
         
 if __name__ == "__main__":
     Main().run()
