@@ -17,6 +17,9 @@ class Serial:
             return ports[0].device
         else:
             raise PortNotFound()
+        
+    def sendData(self, data):
+        self.ser.write(data.encode())
 
     def processData(self, data):
         data = data.replace("!", "")
@@ -42,4 +45,4 @@ class Serial:
 
 if __name__ == "__main__":
     ser = Serial()
-    ser.run()
+    # ser.run()

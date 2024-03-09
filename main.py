@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 from Adafruit_IO import MQTTClient
 from Pyserial import Serial
-from AIDetect import AI
+# from AIDetect import AI
 import threading
 
 class AdafruitMQTT:
@@ -21,10 +21,11 @@ class AdafruitMQTT:
         self.client = MQTTClient(self.AIO_USERNAME , self.AIO_KEY)
         self.client.on_connect = self.connected
         self.client.on_disconnect = self.disconnected
-        self.client.on_message = self.message
+        self.setOnMessage(self.defaultOnMessage)
         self.client.on_subscribe = self.subscribe
         self.client.connect()
         self.client.loop_background()
+        # self.client.loop_blocking()
 
     def connected(self, client):
         print("Ket noi thanh cong ...")
@@ -41,29 +42,45 @@ class AdafruitMQTT:
         print("Ngat ket noi ...")
         sys.exit(1)
 
-    def message(self, client, feed_id, payload):
+    def defaultOnMessage(self, client, feed_id, payload):
         print("Nhan du lieu: " + payload + ", feed id: " + feed_id)
+
+    def setOnMessage(self, callback):
+        self.client.on_message = callback
 
 class Main:
     def __init__(self):
         self.adafruit_mqtt = AdafruitMQTT()
+        self.adafruit_mqtt.setOnMessage(self.sendCommand)
         self.ser = Serial()
-        self.ai = AI()
+        # self.ai = AI()
 
     def publishSensor(self, data):
         if data[1] == "T":
             self.adafruit_mqtt.publish("cambien1", data[2])
+            print("Publish temp")
         elif data[1] == "L":
             self.adafruit_mqtt.publish("cambien2", data[2])
+            print("Publish light")
         elif data[1] == "H":
             self.adafruit_mqtt.publish("cambien3", data[2])
+            print("Publish humi")
 
     def publishAI(self, data):
         self.adafruit_mqtt.publish("ai", data)
 
+    def sendCommand(self, client, feed_id, payload):
+        if feed_id == "nutnhan1":
+            self.ser.sendData("!" + payload + "#")
+        elif feed_id == "nutnhan2":
+            self.ser.sendData("!" + str(int(payload) + 2) + "#")
+        print("Send command ok!")
+
     def run(self):
+        # while True:
+        #     pass
         threading.Thread(target=self.ser.run, args=(self.publishSensor,)).start()
-        threading.Thread(target=self.ai.run, args=(self.publishAI,)).start()
+        # threading.Thread(target=self.ai.run, args=(self.publishAI,)).start()
         
 if __name__ == "__main__":
     Main().run()
